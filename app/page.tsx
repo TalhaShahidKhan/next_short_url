@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { motion } from "framer-motion"
 import { FormEvent, useState } from "react"
+import Link from "next/link";
 
 export default function Home() {
   // State management
@@ -15,6 +16,16 @@ export default function Home() {
   const [shortenedUrl, setShortenedUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+
+  const clearForm = () => {
+    setFormData({
+      url: '',
+      alias: '',
+      // ... reset all form fields
+    });
+    setShortenedUrl(null)
+  };
+
   // Form submission handler
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,15 +33,23 @@ export default function Home() {
 
     try {
       // Add your API call here
-      // const response = await fetch('/api/shorten', {
-      //   method: 'POST',
-      //   body: JSON.stringify(formData)
-      // });
-      // const data = await response.json();
-      // setShortenedUrl(data.shortUrl);
-
-      // Temporary mock response
-      setShortenedUrl(`https://short.url/${formData.alias || 'abc123'}`);
+      const response = await fetch('/api/shorten', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      });
+      // console.log(await response.status)
+      // console.log(await response.json())
+      if (!response.ok) {
+        const data = await response.json();
+        alert(`${data.Error}`)
+        
+      }
+      else{
+        const data = await response.json();
+        setShortenedUrl(`${process.env.NEXT_PUBLIC_URL}/${data.result.alias}`);
+      }
+      
+      
     } catch (error) {
       console.error('Error shortening URL:', error);
     } finally {
@@ -138,12 +157,9 @@ export default function Home() {
                     value={shortenedUrl}
                     className="bg-background"
                   />
-                  <Button
-                    onClick={() => navigator.clipboard.writeText(shortenedUrl)}
-                    variant="outline"
-                  >
-                    Copy
-                  </Button>
+                  <Link href={shortenedUrl} target="_blank" onClick={clearForm}>
+                    Open
+                  </Link>
                 </div>
               </motion.div>
             )}
